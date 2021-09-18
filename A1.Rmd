@@ -1,0 +1,219 @@
+---
+title: "BDA - Assignment 1"
+author: "Anonymous"
+output: 
+  pdf_document: 
+    toc: yes
+    toc_depth: 1
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+# To install aaltobda, see the General information in the assignment.
+library(aaltobda)
+```
+
+# Exercise 1)
+
+probability: a numerical value describing the likeliness for an event to occur.
+
+probability mass: a numerical value which describes the probability of a random discrete variable taking a particular discrete value
+
+probability density: a numerical value that describes the probability of a random continuous variable to be within a certain interval 
+
+pmf: a function that gives the probability distribution of a random discrete variable across discrete random values. 
+
+pdf: a function that gives the probability distribution of a continuous variable across a range of values.
+
+probability distribution: distribution of probability of occurrence of different possible outcomes
+
+discrete probability distribution: probability distribution of a random variable that can take discrete finite values only
+
+continuous probability distribution: probability distribution of a random variable to take the values within a continuous interval
+
+cumulative distribution function:The probability that a given random variable will take a value less than or equal to a finite value. 
+
+likelihood: The deduction on the correctness of the probability based on samples under observation
+
+# Exercise 2)
+## a)
+``` {r,fig.height=3, fig.width=4}
+x=seq(0,1,0.0001);
+mu=0.2;
+sigma=0.01;
+a=mu*(mu*(1-mu)/sigma-1)
+b=a*(1-mu)/mu
+y=dbeta(x,a,b)
+plot(x,y)
+```
+## b)
+```{r,fig.height=3, fig.width=4}
+s=rbeta(1000,a,b)
+hist(s)
+```
+We can see from the histogram above, that its shape and size is similar to the density function given above. E.g. the values in the interval 0.1-0.2 are most likely to occur according to the density function and we can see that their frequency in the histogram is the maximum.
+
+## c)
+```{r}
+mean(s)
+var(s)
+```
+From the values of mean and variance for this sample of 1000 values given above, we can see that they are closely matching the true mean and variance which we used to define the distribution in the first place.
+
+## d)
+```{r}
+quantile(s,probs = seq(0.025,0.975,length=2))
+```
+As per the results seen above, the central 95% probability interval of the distribution lies between 0.04346 and 0.42840.
+
+
+# Exercise 3)
+Here, let's try to quantify the false results of the tests based on Bayes' rule and shape our advice based on those results. 
+
+First we write down the probabilities we know and their derivatives:
+
+The general probability that a person has lung cancer is, P(L)=0.001. Consequently, the probability of not having lung cancer is P(NL)=0.999 (Given)
+
+P(Test gives positive| subject has lung cancer) = P(Tp|L)=0.98
+Thus, P(Tn|L)=0.02
+
+P(Test gives negative| subject does not have lung cancer) = P(Tn|NL)=0.96
+Thus, P(Tp|NL)=0.04
+
+Now, there are two cases to consider:
+1) High false negatives i.e. the patient has cancer but the test comes out negative for it. 
+
+Using Bayes rule, we can get:
+$$
+P(L|Tn)=\frac{P(L).P(Tn|L)}{P(Tn)}
+=\frac{P(L).P(Tn|L)}{P(L).P(Tn|L)+P(NL).P(Tn|NL)}=
+$$
+
+```{r}
+0.001*0.02/(0.001*0.02+0.999*0.96)
+``` 
+Hence there is only a 0.002%  probability that a cancer goes undetected. 
+
+2)Test is positive but the patient doesn't have cancer
+Again, using Bayes rule, we get:
+
+$$
+P(NL|Tp)=\frac{P(NL).P(Tp|NL)}{P(Tp)}\
+=\frac{P(NL).P(Tp|NL)}{P(NL).P(Tp|NL)+P(L).P(Tp|L)}=
+$$
+
+```{r}
+0.999*0.04/(0.999*0.04+0.001*0.98)
+``` 
+Hence there is a 97.6% chance that a patient doesn't actually have cancer even when the test comes out positive.
+
+So in conclusion, I would advise the researches that they can trust the negative outcomes of the tests. But the positives outcomes of the test can be misleading 97.6% of the times, and thus the patients should be tested further to confirm if they actually have cancer or not
+
+# Exercise 4)
+
+```{r}
+boxes <- matrix(c(2,4,1,5,1,3), ncol = 2,
+dimnames = list(c("A", "B", "C"), c("red", "white")))
+```
+
+
+## a)
+
+```{r}
+#defining the function to get the probability of picking a red ball
+p_red <- function(boxes) {
+  
+  P_A=0.4;
+  P_B=0.1;
+  P_C=0.5;
+  
+  P_r <- P_A*boxes["A","red"]/sum(boxes["A",])+
+        P_B*boxes["B","red"]/sum(boxes["B",])+
+        P_C*boxes["C","red"]/sum(boxes["C",])
+  return(P_r)
+}
+p_red(boxes=boxes)
+```
+## b)
+
+Here, we calculate the probability of each box given that the colour of the picked ball is red.
+
+We use the Bayes rule, where -- is replaced by each of the 3 boxes (A.B,C):
+
+$$
+P(--|R)=\frac{P(--).P(R|--)}{P(R)}
+$$
+
+
+```{r}
+#defining the function to get the probability of the likely box from 
+#which the red ball is picked
+p_box <- function(boxes) {
+  
+  P_A=0.4;
+  P_B=0.1;
+  P_C=0.5;
+  
+  P_r = P_A*boxes["A","red"]/sum(boxes["A",])+
+        P_B*boxes["B","red"]/sum(boxes["B",])+
+        P_C*boxes["C","red"]/sum(boxes["C",])
+  P_b <-c(P_A*boxes["A","red"]/sum(boxes["A",])/P_r, 
+          P_B*boxes["B","red"]/sum(boxes["B",])/P_r, 
+          P_C*boxes["C","red"]/sum(boxes["C",]/P_r))
+  
+  return(P_b)
+  
+}
+p_box(boxes=boxes)
+
+```
+# Exercise 5)
+
+Given that Elvis's brother is a boy(obvious, but still had to be stated!), we must calculate the probability that he is an identical twin. 
+
+First lets calculate the independent probability of a twin being identical or fraternal. 
+
+The probability of a fraternal twin is $1/150$ or $8/1200$.
+
+The probability of an identical twin is $1/400$ or $3/1200$.
+
+Thus, in 1200 births, there is a probability of 11 twins, 3 of which are identical and 8 of which are fraternal. 
+Thus given that we have a twin birth, the probability of fraternal is, $P(F)=8/11$ and that of identical is, $P(I)=3/11$
+
+Further, if Elvis's twin was identical, he was definitely a boy, $P(B|I)=1$.
+
+But if Elvis's twin was fraternal, there would be a 50% chance of boy or girl, $P(B|F)=0.5$
+
+Now given that Elvis's twin was a boy, we can calculate the probability of them being identical using Bayes rule as follows:
+
+
+$$
+P(I|B)=\frac{P(I).P(B|I)}{P(B)}=\frac{P(I).P(B|I)}{P(I).P(B|I)+P(F).P(B|F)}
+$$
+We can define a function for the above equation as follows:
+
+```{r}
+
+p_identical_twin <- function(fraternal_prob,identical_prob) {
+  
+  P_boy_given_I=1;
+  P_boy_given_F=0.5;
+
+  P_F=fraternal_prob/(fraternal_prob+identical_prob);
+  P_I=identical_prob/(fraternal_prob+identical_prob);
+  
+  p_identical_twin <- P_I*P_boy_given_I/(P_I*P_boy_given_I+P_F*P_boy_given_F)
+
+  
+  return(p_identical_twin)
+  
+}
+p_identical_twin(fraternal_prob = 1/150, identical_prob = 1/400)
+
+```
+
+
